@@ -1,0 +1,28 @@
+AGENTS.md
+  h_b018692674290f 6-8
+README.md
+  h_b018692674290f 8-10,27,36,41-44,49,73-77,80-82,116,122-124
+cmd/root.go
+  h_b018692674290f 1-42
+cmd/root_test.go
+  h_b018692674290f 1-113
+go.mod
+  h_b018692674290f 4-10
+go.sum
+  h_b018692674290f 1-10
+internal/agent/infrastructure/openai/client.go
+  h_b018692674290f 36
+main.go
+  h_b018692674290f 9,13-14,17,19,22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4897b9ceb5a3a5eb45b45723e70e31ea31fc3079",
+  "prompts": {},
+  "humans": {
+    "h_b018692674290f": {
+      "author": "insomnius <arief.rahman@getboon.ai>"
+    }
+  }
+}
