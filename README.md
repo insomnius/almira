@@ -9,6 +9,8 @@ Planned: agent loops, tools, ephemeral container sessions using a replaceable
 runtime (containerd by default), and private tenant, organization, division,
 and user scopes. Container execution and access isolation are not implemented yet.
 
+See [concept and next steps](docs/concept.md) for the design direction.
+
 ## Run
 
 Requires Go 1.26+, `OPENAI_API_KEY`, and a model available to your account.
