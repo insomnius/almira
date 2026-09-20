@@ -5,8 +5,9 @@ An enterprise AI agent, built in Go one small step at a time.
 ## Step 1: one prompt, one answer
 
 This increment calls an OpenAI-format Chat Completions endpoint and prints the
-answer. It uses only Go's standard library, so you can read the actual HTTP request
-without learning an SDK first.
+answer. The CLI uses Cobra, with a root `main.go` entry point. The OpenAI adapter
+uses Go's standard library, so you can read the actual HTTP request without
+learning an SDK first.
 
 The CLI is a development harness. Agent loops, tools, tenant authorization, and
 container execution are future increments. This is not yet a deployed enterprise
@@ -23,7 +24,7 @@ PowerShell 7 (the key prompt is hidden and does not put the key in shell history
 ```powershell
 $env:OPENAI_API_KEY = Read-Host 'OpenAI API key' -MaskInput
 $env:OPENAI_MODEL = 'gpt-4.1-mini'
-go run ./cmd/almira -prompt 'Introduce yourself as Almira in one sentence.'
+go run . --prompt 'Introduce yourself as Almira in one sentence.'
 ```
 
 Bash:
@@ -32,17 +33,20 @@ Bash:
 read -r -s -p 'OpenAI API key: ' OPENAI_API_KEY
 export OPENAI_API_KEY
 export OPENAI_MODEL=gpt-4.1-mini
-go run ./cmd/almira -prompt 'Introduce yourself as Almira in one sentence.'
+go run . --prompt 'Introduce yourself as Almira in one sentence.'
 ```
 
 The model is deliberately an explicit setting. The example uses
 [GPT-4.1 mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini);
-choose a model your account can access. `-model` overrides `OPENAI_MODEL`.
+choose a model your account can access. `--model` (or `-m`) overrides `OPENAI_MODEL`.
+Use `--prompt` (or `-p`) for input, and `go run . --help` for command help.
+Cobra uses double dashes for long flags; the original `-prompt` and `-model`
+spellings are replaced by `--prompt` and `--model`.
 
 | Setting | Purpose |
 | --- | --- |
 | `OPENAI_API_KEY` | Required credential, held in process memory |
-| `OPENAI_MODEL` | Model ID; can instead be supplied with `-model` |
+| `OPENAI_MODEL` | Model ID; can instead be supplied with `--model` |
 | `OPENAI_BASE_URL` | Optional API prefix; defaults to `https://api.openai.com/v1` |
 
 For an OpenAI-compatible endpoint, set its API prefix (for example,
@@ -66,13 +70,16 @@ retries, so a failed request cannot silently cause another model call.
 3. `internal/agent/infrastructure/openai/client.go`: the adapter translates that
    call into HTTP and private JSON types, then translates the response back into
    text. Provider details stay here.
-4. `cmd/almira/main.go`: the composition root reads settings, selects the adapter,
-   connects it to `Ask`, and prints the result.
+4. `cmd/root.go`: constructs the Cobra root command, defines flags, selects the
+   adapter, connects it to `Ask`, and prints the result. `RunE` returns errors to
+   the entry point; `command.Context()` carries cancellation to the provider.
+5. `main.go`: creates the interrupt-aware context, executes the command, and sets
+   the exit status. This stays small as we add more commands.
 
 ```text
-CLI -> Ask use case -> TextGenerator port -> OpenAI adapter -> API
-          |
-          +-> Prompt value object
+main.go -> Cobra command -> Ask -> TextGenerator port -> OpenAI adapter -> API
+                            |
+                            +-> Prompt value object
 ```
 
 The application imports the domain. Infrastructure imports the domain and
@@ -106,13 +113,15 @@ means the session state is discarded, not that storage never exists on the host.
 ```sh
 go test -timeout 30s ./...
 go vet ./...
-go build -o bin/almira ./cmd/almira
+go build -o bin/almira .
 ```
 
 Tests use local HTTP servers and a fake provider. They cover the complete
 application-to-adapter path, request headers and JSON, explicit `store: false`,
 input validation, cancellation, redirects, provider failures, and incomplete or
-oversized responses. They do not call OpenAI or consume API credits.
+oversized responses. Command tests also cover help without credentials, flag
+validation, model overrides, output routing, and context propagation. They do not
+call OpenAI or consume API credits.
 
 ## Next increments
 

@@ -33,7 +33,7 @@ func NewClient(apiKey, model, baseURL string) (*Client, error) {
 		return nil, errors.New("OPENAI_API_KEY is required")
 	}
 	if model == "" {
-		return nil, errors.New("set OPENAI_MODEL or pass -model")
+		return nil, errors.New("set OPENAI_MODEL or pass --model")
 	}
 	if baseURL == "" {
 		baseURL = DefaultBaseURL
