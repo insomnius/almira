@@ -1,5 +1,5 @@
-// Package domain contains agent concepts and rules, independent of providers.
-package domain
+// Package entity contains agent concepts and rules, independent of providers.
+package entity
 
 import (
 	"errors"

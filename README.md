@@ -62,31 +62,37 @@ retries, so a failed request cannot silently cause another model call.
 
 ## Read the code in this order
 
-1. `internal/agent/domain/prompt.go`: a `Prompt` is immutable text that must contain
-   something besides whitespace. Formatting is preserved. This is a value object,
-   not an entity: it has no identity or lifecycle of its own.
-2. `internal/agent/application/ask.go`: `Ask.Execute` creates the prompt and asks a
-   `TextGenerator` for an answer. The interface is a port owned by the application.
-3. `internal/agent/infrastructure/openai/client.go`: the adapter translates that
-   call into HTTP and private JSON types, then translates the response back into
-   text. Provider details stay here.
-4. `cmd/root.go`: constructs the Cobra root command, defines flags, selects the
-   adapter, connects it to `Ask`, and prints the result. `RunE` returns errors to
-   the entry point; `command.Context()` carries cancellation to the provider.
-5. `main.go`: creates the interrupt-aware context, executes the command, and sets
-   the exit status. This stays small as we add more commands.
+1. `internal/agent/entity/prompt.go`: the prompt value object and its validation.
+   The `entity` package holds domain concepts; `Prompt` itself has no identity.
+2. `internal/agent/usecase/ask.go`: `Ask.Execute` validates input and calls the
+   provider-neutral `TextGenerator` interface defined beside its consumer.
+3. `internal/provider/openai/client.go`: translates the generation request into
+   HTTP and private JSON types, then returns plain text.
+4. `internal/agent/controller/command/ask.go`: defines Cobra flags, invokes `Ask`,
+   and prints the answer. It receives a factory so help needs no credentials.
+5. `internal/agent/provider.go`: explicitly wires the controller, use case, and
+   OpenAI adapter using `Provide`, following Altair's module conventions.
+6. `cmd/root.go`: assembles the command tree from the agent module.
+7. `main.go`: supplies cancellation, executes the command, and handles exit status.
 
 ```text
-main.go -> Cobra command -> Ask -> TextGenerator port -> OpenAI adapter -> API
+main.go -> cmd -> agent.Provide (dependency wiring)
+                     |
+                     v
+              command -> usecase -> TextGenerator -> OpenAI adapter
                             |
-                            +-> Prompt value object
+                            v
+                          entity
 ```
 
-The application imports the domain. Infrastructure imports the domain and
-implicitly implements the application interface. Only the CLI chooses a concrete
-provider. There is no need for an entity, aggregate, repository, or database yet.
-This is the initial slice of the agent bounded context; more domain behavior will
-appear when we introduce sessions and tools.
+The layout follows Altair's controller/usecase/entity vocabulary. Use cases and
+provider adapters depend on domain concepts; domain code imports neither Cobra
+nor HTTP. The agent module's `provider.go` selects the concrete adapter. Here,
+`Provide` means dependency wiring, while `internal/provider/openai` implements
+an external model provider.
+
+This is the initial slice of the agent bounded context. Aggregates, repositories,
+and additional modules will be introduced when sessions and tools require them.
 
 ## Privacy and ephemeral execution
 

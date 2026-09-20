@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/insomnius/almira/internal/agent/domain"
+	"github.com/insomnius/almira/internal/agent/entity"
 )
 
 const DefaultBaseURL = "https://api.openai.com/v1"
@@ -81,10 +81,10 @@ type response struct {
 	} `json:"choices"`
 }
 
-func (c *Client) Generate(ctx context.Context, prompt domain.Prompt) (string, error) {
+func (c *Client) Generate(ctx context.Context, prompt entity.Prompt) (string, error) {
 	// Go permits a zero-value Prompt even with an unexported field.
 	if prompt.Text() == "" {
-		return "", domain.ErrEmptyPrompt
+		return "", entity.ErrEmptyPrompt
 	}
 	payload, err := json.Marshal(request{
 		Model:    c.model,

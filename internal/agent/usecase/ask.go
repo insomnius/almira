@@ -1,16 +1,16 @@
-// Package application coordinates agent use cases through provider-neutral ports.
-package application
+// Package usecase coordinates agent use cases through provider-neutral ports.
+package usecase
 
 import (
 	"context"
 
-	"github.com/insomnius/almira/internal/agent/domain"
+	"github.com/insomnius/almira/internal/agent/entity"
 )
 
 // TextGenerator is the capability Ask needs. Each provider implements this port.
 // JSON, HTTP, model identifiers, and credentials belong to the adapter.
 type TextGenerator interface {
-	Generate(context.Context, domain.Prompt) (string, error)
+	Generate(context.Context, entity.Prompt) (string, error)
 }
 
 type Ask struct {
@@ -23,7 +23,7 @@ func NewAsk(generator TextGenerator) *Ask {
 
 // Execute makes one model call. The agent loop will be a later increment.
 func (a *Ask) Execute(ctx context.Context, text string) (string, error) {
-	prompt, err := domain.NewPrompt(text)
+	prompt, err := entity.NewPrompt(text)
 	if err != nil {
 		return "", err
 	}

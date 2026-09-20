@@ -1,27 +1,27 @@
-package application_test
+package usecase_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"github.com/insomnius/almira/internal/agent/application"
-	"github.com/insomnius/almira/internal/agent/domain"
+	"github.com/insomnius/almira/internal/agent/entity"
+	"github.com/insomnius/almira/internal/agent/usecase"
 )
 
-type generatorFunc func(context.Context, domain.Prompt) (string, error)
+type generatorFunc func(context.Context, entity.Prompt) (string, error)
 
-func (f generatorFunc) Generate(ctx context.Context, p domain.Prompt) (string, error) {
+func (f generatorFunc) Generate(ctx context.Context, p entity.Prompt) (string, error) {
 	return f(ctx, p)
 }
 
 func TestAskRejectsBlankInputBeforeCallingProvider(t *testing.T) {
-	ask := application.NewAsk(generatorFunc(func(context.Context, domain.Prompt) (string, error) {
+	ask := usecase.NewAsk(generatorFunc(func(context.Context, entity.Prompt) (string, error) {
 		t.Fatal("blank input reached the provider")
 		return "", nil
 	}))
 	for _, input := range []string{"", " \n\t", "\u3000"} {
-		if _, err := ask.Execute(context.Background(), input); !errors.Is(err, domain.ErrEmptyPrompt) {
+		if _, err := ask.Execute(context.Background(), input); !errors.Is(err, entity.ErrEmptyPrompt) {
 			t.Errorf("input %q: got %v, want ErrEmptyPrompt", input, err)
 		}
 	}
@@ -31,7 +31,7 @@ func TestAskPreservesPromptAndContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	const input = "  explain this code:\n    hello()\n"
-	ask := application.NewAsk(generatorFunc(func(got context.Context, p domain.Prompt) (string, error) {
+	ask := usecase.NewAsk(generatorFunc(func(got context.Context, p entity.Prompt) (string, error) {
 		if got != ctx || p.Text() != input {
 			t.Fatal("context or prompt changed at the application boundary")
 		}

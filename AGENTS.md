@@ -3,14 +3,12 @@
 - Build in small, explainable increments. The learning sequence is provider call,
   agent loop, then tools, followed by disposable execution and enterprise access.
 - Use Go. Favor the standard library while it keeps the implementation readable.
-- Keep the executable entry point in root `main.go`. Define Cobra commands in
-  `cmd/`, using constructors and `RunE`; keep business rules in the domain and
-  application packages. Propagate the command context for cancellation.
+- Keep the executable entry point in root `main.go`. Assemble Cobra commands in `cmd/` and define feature commands under `internal/<context>/controller/command/`. Use constructors and `RunE`; keep business rules in `entity` and `usecase`. Propagate the command context for cancellation.
 - Apply domain-driven design: organize by bounded context; keep domain rules and
   vocabulary independent of transport, providers, and container runtimes.
-- Keep use cases in application packages. Define ports where they are consumed.
-  Implement provider and runtime details in infrastructure adapters. Wire concrete
-  implementations in the entry point.
+- Follow Altair conventions: `entity`, `usecase`, `controller`, and `provider.go`.
+  Keep use cases in `usecase` packages. Define ports where they are consumed.
+  Implement model providers under `internal/provider/` and runtime details in adapters. Wire concrete implementations in each module's `provider.go`.
 - Introduce entities, aggregates, repositories, and events only when real behavior
   requires them. Avoid empty abstractions and speculative frameworks.
 - Start with OpenAI-format Chat Completions. Keep its JSON schema private to the

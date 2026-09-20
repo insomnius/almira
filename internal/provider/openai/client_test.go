@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/insomnius/almira/internal/agent/application"
-	"github.com/insomnius/almira/internal/agent/domain"
-	"github.com/insomnius/almira/internal/agent/infrastructure/openai"
+	"github.com/insomnius/almira/internal/agent/entity"
+	"github.com/insomnius/almira/internal/agent/usecase"
+	"github.com/insomnius/almira/internal/provider/openai"
 )
 
 const goodResponse = `{"choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"Hello from Almira."}}]}`
@@ -44,7 +44,7 @@ func TestAskThroughOpenAIAdapter(t *testing.T) {
 	}))
 	defer server.Close()
 	client := newClient(t, server.URL+"/v1/")
-	answer, err := application.NewAsk(client).Execute(context.Background(), "Hello")
+	answer, err := usecase.NewAsk(client).Execute(context.Background(), "Hello")
 	if err != nil || answer != "Hello from Almira." {
 		t.Fatalf("got %q, %v", answer, err)
 	}
@@ -142,9 +142,9 @@ func newClient(t *testing.T, base string) *openai.Client {
 	return c
 }
 
-func prompt(t *testing.T) domain.Prompt {
+func prompt(t *testing.T) entity.Prompt {
 	t.Helper()
-	p, err := domain.NewPrompt("Hello")
+	p, err := entity.NewPrompt("Hello")
 	if err != nil {
 		t.Fatal(err)
 	}
